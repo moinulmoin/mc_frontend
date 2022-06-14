@@ -1,0 +1,70 @@
+body {
+	font-family: 'Rubik', sans-serif;
+}
+
+button > a {
+	color: inherit;
+	text-decoration: none;
+}
+
+button > a:hover {
+	color: inherit;
+}
+
+.page-height {
+	height: 'calc(100vh - 56px)';
+}
+
+.mt-10 {
+	margin-top: 5rem;
+}
+
+.invalid-feedback {
+	display: block !important;
+}
+
+.line-clamp-3 {
+	display: -webkit-box;
+	-webkit-line-clamp: 3;
+	-webkit-box-orient: vertical;
+	text-overflow: ellipsis;
+	overflow: hidden;
+}
+
+.date {
+	font-size: calc(1rem * 14 / 16);
+}
+
+.ql-container {
+	min-height: 100px;
+}
+
+.quill.is-invalid {
+	border: 1px solid #dc3545;
+}
+
+/* Small devices (landscape phones, 576px and up) */
+@media (min-width: 576px) {
+	.w-sm-50 {
+		width: 50%;
+	}
+}
+
+/* Medium devices (tablets, 768px and up) */
+@media (min-width: 768px) {
+}
+
+/* Large devices (desktops, 992px and up) */
+@media (min-width: 992px) {
+	.w-lg-30 {
+		width: 30%;
+	}
+}
+
+/* X-Large devices (large desktops, 1200px and up) */
+@media (min-width: 1200px) {
+}
+
+/* XX-Large devices (larger desktops, 1400px and up) */
+@media (min-width: 1400px) {
+}
