@@ -43,20 +43,20 @@ const UpdateMemory = () => {
 	}, [register]);
 
 	useEffect(() => {
-		axios
-			.get(`/api/memories/${id}`, {
-				headers: {
-					Authorization: `Bearer ${localStorage.getItem('token')}`,
-				},
-			})
+		fetch(import.meta.env.VITE_API_URL + `/api/memories/${id}`, {
+			headers: {
+				Authorization: `Bearer ${localStorage.getItem('token')}`,
+			},
+		})
+			.then((res) => res.json())
 			.then((res) => {
-				setValue('title', res.data.title);
-				setValue('date', res.data.date);
-				setValue('description', res.data.description);
-				setValue('featureImage', res.data.featureImage);
+				setValue('title', res.title);
+				setValue('date', res.date);
+				setValue('description', res.description);
+				setValue('featureImage', res.featureImage);
 			})
 			.catch((err) => {
-				toast.error(err.response.data);
+				toast.error(err.message);
 			});
 	}, []);
 
@@ -77,7 +77,7 @@ const UpdateMemory = () => {
 			.then((res) => {
 				reset();
 				toast.success('Successfully Updated!');
-				navigate(-1);
+				navigate('/memories');
 			})
 			.catch((err) => {
 				toast.error('Failed to Update!');

@@ -1,5 +1,4 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import axios from 'axios';
 import { Button, Container, Form } from 'react-bootstrap';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
@@ -51,20 +50,23 @@ const Register = ({ user }: any) => {
 	});
 
 	const onSubmit = async (data: RegisterInputs) => {
-		try {
-			const res = await axios.post('/api/users', data, {
-				headers: {
-					'Content-Type': 'application/json',
-				},
+		fetch(import.meta.env.VITE_API_URL + '/api/users', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify(data),
+		})
+			.then((res) => res.json())
+			.then((res) => {
+				reset();
+				localStorage.setItem('token', res.token);
+				toast.success('Registration successful');
+				window.location.href = '/';
+			})
+			.catch((err) => {
+				toast.error(err.message);
 			});
-			reset();
-			const jwt = res.headers.authorization.split(' ')[1];
-			localStorage.setItem('token', jwt);
-			toast.success('Registered Successfully');
-			window.location.href = '/';
-		} catch (err: any) {
-			toast.success(err.response.data);
-		}
 	};
 
 	return (

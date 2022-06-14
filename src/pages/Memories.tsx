@@ -1,4 +1,3 @@
-import axios from 'axios';
 import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
 import { Col, Container, Row } from 'react-bootstrap';
@@ -24,17 +23,20 @@ const Memories = () => {
 	const [memories, setMemories] = useState<Memory[]>([]);
 
 	useEffect(() => {
-		axios
-			.get('/api/memories', {
-				headers: {
-					Authorization: `Bearer ${localStorage.getItem('token')}`,
-				},
-			})
+		fetch(import.meta.env.VITE_API_URL + '/api/memories', {
+			headers: {
+				Authorization: `Bearer ${localStorage.getItem('token')}`,
+			},
+		})
+			.then((res) => res.json())
 			.then((res) => {
-				setMemories(res.data);
+				if (res.length === 0) {
+					throw new Error('No memories found');
+				}
+				setMemories(res);
 			})
 			.catch((err) => {
-				toast.error(err.response.data);
+				toast.error(err.message);
 			})
 			.finally(() => {
 				setLoading(false);

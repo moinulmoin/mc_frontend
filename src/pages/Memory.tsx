@@ -23,25 +23,25 @@ const Memory = () => {
 	const [memory, setMemory] = useState<Memory>();
 
 	useEffect(() => {
-		axios
-			.get(`/api/memories/${id}`, {
-				headers: {
-					Authorization: `Bearer ${localStorage.getItem('token')}`,
-				},
-			})
+		fetch(import.meta.env.VITE_API_URL + `/api/memories/${id}`, {
+			headers: {
+				Authorization: `Bearer ${localStorage.getItem('token')}`,
+			},
+		})
+			.then((res) => res.json())
 			.then((res) => {
-				setMemory(res.data);
+				setMemory(res);
 			})
 			.catch((err) => toast.error('Failed to load memory'));
 	}, []);
 
 	const handleDelete = () => {
-		axios
-			.delete(`/api/memories/${id}`, {
-				headers: {
-					Authorization: `Bearer ${localStorage.getItem('token')}`,
-				},
-			})
+		fetch(import.meta.env.VITE_API_URL + `/api/memories/${id}`, {
+			headers: {
+				Authorization: `Bearer ${localStorage.getItem('token')}`,
+			},
+			method: 'DELETE',
+		})
 			.then(() => {
 				toast.success('Deleted Successfully');
 				navigate('/memories');

@@ -6,7 +6,12 @@ const Home = ({ user }: any) => {
 			<Container>
 				<div className='my-5'></div>
 				<div className='text-center'>
-					<h1>Welcome {user ? user.name : ''}</h1>
+					<h1>
+						Welcome{' '}
+						<span className='text-primary'>
+							{user ? user.name : ''}
+						</span>
+					</h1>
 					<h2>
 						{user
 							? 'Thanks for using our app'

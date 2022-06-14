@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { Button, Container, Form } from 'react-bootstrap';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
@@ -21,22 +20,24 @@ const Login = ({ user }: any) => {
 		formState: { errors },
 	} = useForm<LoginInputs>();
 
-	const onSubmit = async (data: LoginInputs) => {
-		try {
-			const res = await axios.post('/api/auth', data, {
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				data,
+	const onSubmit = (data: LoginInputs) => {
+		fetch(import.meta.env.VITE_API_URL + '/api/auth', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify(data),
+		})
+			.then((res) => res.json())
+			.then((res) => {
+				reset();
+				localStorage.setItem('token', res.token);
+				toast.success('Login successful');
+				window.location.href = '/';
+			})
+			.catch((err) => {
+				toast.error(err.message);
 			});
-			reset();
-			const jwt = res.headers.authorization.split(' ')[1];
-			localStorage.setItem('token', jwt);
-			toast.success('Login successful');
-			window.location.href = '/';
-		} catch (err: any) {
-			toast.error(err.response.data);
-		}
 	};
 	return (
 		<div className='page-height'>

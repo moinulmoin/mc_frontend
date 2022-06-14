@@ -4,7 +4,7 @@ import { Button, Col, Container, Form, Row } from 'react-bootstrap';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import ReactQuill from 'react-quill';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 interface Memory {
 	id?: string;
@@ -28,6 +28,7 @@ const modules = {
 
 const NewMemory = () => {
 	const navigate = useNavigate();
+	const location = useLocation();
 
 	const {
 		register,
