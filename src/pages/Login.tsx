@@ -28,7 +28,12 @@ const Login = ({ user }: any) => {
 			},
 			body: JSON.stringify(data),
 		})
-			.then((res) => res.json())
+			.then((res) => {
+				if (res.status === 200) {
+					return res.json();
+				}
+				throw new Error('Wrong Credentials');
+			})
 			.then((res) => {
 				reset();
 				localStorage.setItem('token', res.token);
