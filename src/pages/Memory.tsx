@@ -1,4 +1,3 @@
-import axios from 'axios';
 import dayjs from 'dayjs';
 import parse from 'html-react-parser';
 import { useEffect, useState } from 'react';
@@ -6,6 +5,7 @@ import { Col, Container, Row } from 'react-bootstrap';
 import toast from 'react-hot-toast';
 import { LazyLoadImage } from 'react-lazy-load-image-component';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import useFetch from 'use-http';
 import SpinnerLoader from '../components/common/SpinnerLoader';
 
 interface Memory {
@@ -16,39 +16,36 @@ interface Memory {
 	featureImage: string;
 }
 
-const Memory = () => {
+const SingleMemory = () => {
 	const { id } = useParams();
 	const navigate = useNavigate();
+
+	const { get, response, del } = useFetch(import.meta.env.VITE_API_URL, {
+		headers: {
+			Authorization: `Bearer ${localStorage.getItem('token')}`,
+		},
+	});
 
 	const [memory, setMemory] = useState<Memory>();
 
 	useEffect(() => {
-		fetch(import.meta.env.VITE_API_URL + `/api/memories/${id}`, {
-			headers: {
-				Authorization: `Bearer ${localStorage.getItem('token')}`,
-			},
-		})
-			.then((res) => res.json())
-			.then((res) => {
-				setMemory(res);
-			})
-			.catch((err) => toast.error('Failed to load memory'));
+		async function fetchData() {
+			const result = await get(`/api/memories/${id}`);
+			if (!response.ok) {
+				return toast.error('Something went wrong');
+			}
+			setMemory(result);
+		}
+		fetchData();
 	}, []);
 
-	const handleDelete = () => {
-		fetch(import.meta.env.VITE_API_URL + `/api/memories/${id}`, {
-			headers: {
-				Authorization: `Bearer ${localStorage.getItem('token')}`,
-			},
-			method: 'DELETE',
-		})
-			.then(() => {
-				toast.success('Deleted Successfully');
-				navigate('/memories');
-			})
-			.catch((err) => {
-				toast.error('Failed to delete');
-			});
+	const handleDelete = async () => {
+		await del(`/api/memories/${id}`);
+		if (!response.ok) {
+			return toast.error('Something went wrong');
+		}
+		toast.success('Deleted Successfully');
+		navigate('/memories');
 	};
 
 	if (!memory) return <SpinnerLoader />;
@@ -99,4 +96,4 @@ const Memory = () => {
 	);
 };
 
-export default Memory;
+export default SingleMemory;

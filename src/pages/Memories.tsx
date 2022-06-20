@@ -4,6 +4,7 @@ import { Col, Container, Row } from 'react-bootstrap';
 import toast from 'react-hot-toast';
 import { LazyLoadImage } from 'react-lazy-load-image-component';
 import { Link } from 'react-router-dom';
+import useFetch from 'use-http';
 import SkeletonLoader from '../components/common/SkeletonLoader';
 
 interface Memory {
@@ -19,28 +20,23 @@ const ArrayOfSkeletonLoaders = Array.from({ length: 8 }, () => (
 ));
 
 const Memories = () => {
-	const [loading, setLoading] = useState(true);
 	const [memories, setMemories] = useState<Memory[]>([]);
 
+	const { get, response, loading } = useFetch(import.meta.env.VITE_API_URL, {
+		headers: {
+			Authorization: `Bearer ${localStorage.getItem('token')}`,
+		},
+	});
+
 	useEffect(() => {
-		fetch(import.meta.env.VITE_API_URL + '/api/memories', {
-			headers: {
-				Authorization: `Bearer ${localStorage.getItem('token')}`,
-			},
-		})
-			.then((res) => res.json())
-			.then((res) => {
-				if (res.length === 0) {
-					throw new Error('No memories found');
-				}
-				setMemories(res);
-			})
-			.catch((err) => {
-				toast.error(err.message);
-			})
-			.finally(() => {
-				setLoading(false);
-			});
+		async function fetchData() {
+			const result = await get('/api/memories');
+			if (!response.ok) {
+				return toast.error('Something went wrong');
+			}
+			setMemories(result);
+		}
+		fetchData();
 	}, []);
 
 	return (
@@ -103,7 +99,7 @@ const Memories = () => {
 					)}
 					{memories.length === 0 && !loading && (
 						<div className='text-center'>
-							<h3>Create some!</h3>
+							<h3>No Memories, Create some!</h3>
 						</div>
 					)}
 				</Row>

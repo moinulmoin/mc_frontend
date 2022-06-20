@@ -1,10 +1,10 @@
-import axios from 'axios';
 import { useEffect } from 'react';
 import { Button, Col, Container, Form, Row } from 'react-bootstrap';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import ReactQuill from 'react-quill';
 import { useNavigate, useParams } from 'react-router-dom';
+import useFetch from 'use-http';
 
 interface Memory {
 	id?: string;
@@ -29,6 +29,11 @@ const modules = {
 const UpdateMemory = () => {
 	const { id } = useParams();
 	const navigate = useNavigate();
+	const { put, response, get } = useFetch(import.meta.env.VITE_API_URL, {
+		headers: {
+			Authorization: `Bearer ${localStorage.getItem('token')}`,
+		},
+	});
 	const {
 		register,
 		handleSubmit,
@@ -43,21 +48,17 @@ const UpdateMemory = () => {
 	}, [register]);
 
 	useEffect(() => {
-		fetch(import.meta.env.VITE_API_URL + `/api/memories/${id}`, {
-			headers: {
-				Authorization: `Bearer ${localStorage.getItem('token')}`,
-			},
-		})
-			.then((res) => res.json())
-			.then((res) => {
-				setValue('title', res.title);
-				setValue('date', res.date);
-				setValue('description', res.description);
-				setValue('featureImage', res.featureImage);
-			})
-			.catch((err) => {
-				toast.error(err.message);
-			});
+		async function fetchData() {
+			const result = await get(`/api/memories/${id}`);
+			if (!response.ok) {
+				toast.error(result.message);
+			}
+			setValue('title', result.title);
+			setValue('date', result.date);
+			setValue('description', result.description);
+			setValue('featureImage', result.featureImage);
+		}
+		fetchData();
 	}, []);
 
 	const onEditorStateChange = (content: string) => {
@@ -66,22 +67,17 @@ const UpdateMemory = () => {
 
 	const editorContent = watch('description');
 
-	const onSubmit = async (data: Memory) => {
-		axios
-			.put(`/api/memories/${id}`, data, {
-				headers: {
-					Authorization: `Bearer ${localStorage.getItem('token')}`,
-					'Content-Type': 'application/json',
-				},
-			})
-			.then((res) => {
-				reset();
-				toast.success('Successfully Updated!');
-				navigate('/memories');
-			})
-			.catch((err) => {
-				toast.error('Failed to Update!');
-			});
+	const onSubmit = (data: Memory) => {
+		async function updateData() {
+			const result = await put(`/api/memories/${id}`, data);
+			if (!response.ok) {
+				return toast.error(result.message);
+			}
+			reset();
+			toast.success('Successfully Updated!');
+			navigate('/memories');
+		}
+		updateData();
 	};
 	return (
 		<div>

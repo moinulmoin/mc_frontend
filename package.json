@@ -23,6 +23,7 @@
 		"react-lazy-load-image-component": "^1.5.4",
 		"react-quill": "^2.0.0-beta.4",
 		"react-router-dom": "^6.3.0",
+		"use-http": "^1.0.26",
 		"vite-plugin-chunk-split": "^0.2.2",
 		"yup": "^0.32.11"
 	},

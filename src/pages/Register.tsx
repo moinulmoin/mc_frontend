@@ -3,6 +3,7 @@ import { Button, Container, Form } from 'react-bootstrap';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { Navigate } from 'react-router-dom';
+import useFetch from 'use-http';
 import * as Yup from 'yup';
 
 interface RegisterInputs {
@@ -40,6 +41,8 @@ const Register = ({ user }: any) => {
 		return <Navigate to='/' replace />;
 	}
 
+	const { post, response, loading } = useFetch(import.meta.env.VITE_API_URL);
+
 	const {
 		register,
 		handleSubmit,
@@ -49,24 +52,19 @@ const Register = ({ user }: any) => {
 		resolver: yupResolver(validationSchema),
 	});
 
-	const onSubmit = async (data: RegisterInputs) => {
-		fetch(import.meta.env.VITE_API_URL + '/api/users', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-			body: JSON.stringify(data),
-		})
-			.then((res) => res.json())
-			.then((res) => {
+	const onSubmit = (data: RegisterInputs) => {
+		async function postData() {
+			const result = await post('/api/users', data);
+			if (response.ok) {
 				reset();
-				localStorage.setItem('token', res.token);
+				localStorage.setItem('token', result.token);
 				toast.success('Registration successful');
 				window.location.href = '/';
-			})
-			.catch((err) => {
-				toast.error(err.message);
-			});
+			} else {
+				toast.error(result.message);
+			}
+		}
+		postData();
 	};
 
 	return (
@@ -132,7 +130,7 @@ const Register = ({ user }: any) => {
 						)}
 					</Form.Group>
 					<Button variant='primary' type='submit' className='w-100'>
-						Register
+						{loading ? 'Please Wait...' : 'Register'}
 					</Button>
 				</Form>
 			</Container>

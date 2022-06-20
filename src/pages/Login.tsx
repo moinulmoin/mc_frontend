@@ -2,6 +2,7 @@ import { Button, Container, Form } from 'react-bootstrap';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { Navigate } from 'react-router-dom';
+import useFetch from 'use-http';
 
 interface LoginInputs {
 	usernameOrEmail: string;
@@ -12,6 +13,7 @@ const Login = ({ user }: any) => {
 	if (user) {
 		return <Navigate to='/' replace />;
 	}
+	const { post, response, loading } = useFetch(import.meta.env.VITE_API_URL);
 
 	const {
 		register,
@@ -21,28 +23,18 @@ const Login = ({ user }: any) => {
 	} = useForm<LoginInputs>();
 
 	const onSubmit = (data: LoginInputs) => {
-		fetch(import.meta.env.VITE_API_URL + '/api/auth', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-			body: JSON.stringify(data),
-		})
-			.then((res) => {
-				if (res.status === 200) {
-					return res.json();
-				}
-				throw new Error('Wrong Credentials');
-			})
-			.then((res) => {
+		async function postData() {
+			const result = await post('/api/auth', data);
+			if (response.ok) {
 				reset();
-				localStorage.setItem('token', res.token);
+				localStorage.setItem('token', result.token);
 				toast.success('Login successful');
 				window.location.href = '/';
-			})
-			.catch((err) => {
-				toast.error(err.message);
-			});
+			} else {
+				toast.error(result.message);
+			}
+		}
+		postData();
 	};
 	return (
 		<div className='page-height'>
@@ -73,7 +65,7 @@ const Login = ({ user }: any) => {
 						/>
 					</Form.Group>
 					<Button variant='primary' type='submit' className='w-100'>
-						Login
+						{loading ? 'Please Wait...' : 'Login'}
 					</Button>
 				</Form>
 			</Container>
