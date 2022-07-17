@@ -2,9 +2,10 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { Button, Container, Form } from 'react-bootstrap';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
-import { Navigate } from 'react-router-dom';
-import useFetch from 'use-http';
+import { Redirect } from 'react-router-dom';
 import * as Yup from 'yup';
+import { useAuthContext } from '../context/authContext';
+import useHttpsService from '../services/httpsService';
 
 interface RegisterInputs {
 	name: string;
@@ -36,12 +37,14 @@ const validationSchema = Yup.object().shape({
 		.max(255, 'Password can be maximum 255 characters'),
 });
 
-const Register = ({ user }: any) => {
-	if (user) {
-		return <Navigate to='/' replace />;
+const Register = () => {
+	const { isAuthenticated } = useAuthContext();
+	if (isAuthenticated) {
+		return <Redirect to='/' />;
 	}
 
-	const { post, response, loading } = useFetch(import.meta.env.VITE_API_URL);
+	const { post, loading } = useHttpsService();
+	const { setUserAuth } = useAuthContext();
 
 	const {
 		register,
@@ -52,19 +55,17 @@ const Register = ({ user }: any) => {
 		resolver: yupResolver(validationSchema),
 	});
 
-	const onSubmit = (data: RegisterInputs) => {
-		async function postData() {
-			const result = await post('/api/users', data);
-			if (response.ok) {
-				reset();
-				localStorage.setItem('token', result.token);
-				toast.success('Registration successful');
-				window.location.href = '/';
-			} else {
-				toast.error(result.message);
-			}
+	const onSubmit = async (data: RegisterInputs) => {
+		const result = await post('/api/users', data);
+
+		if (result.name === 'AxiosError') {
+			return toast.error(result.response.data.message);
 		}
-		postData();
+
+		reset();
+		setUserAuth(result.data.token);
+		toast.success('Registration successful');
+		window.location.href = '/';
 	};
 
 	return (

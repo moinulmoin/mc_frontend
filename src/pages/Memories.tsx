@@ -4,8 +4,8 @@ import { Col, Container, Row } from 'react-bootstrap';
 import toast from 'react-hot-toast';
 import { LazyLoadImage } from 'react-lazy-load-image-component';
 import { Link } from 'react-router-dom';
-import useFetch from 'use-http';
 import SkeletonLoader from '../components/common/SkeletonLoader';
+import useHttpsService from '../services/httpsService';
 
 interface Memory {
 	_id: string;
@@ -20,23 +20,19 @@ const ArrayOfSkeletonLoaders = Array.from({ length: 8 }, () => (
 ));
 
 const Memories = () => {
-	const [memories, setMemories] = useState<Memory[]>([]);
+	const { get, loading } = useHttpsService();
 
-	const { get, response, loading } = useFetch(import.meta.env.VITE_API_URL, {
-		headers: {
-			Authorization: `Bearer ${localStorage.getItem('token')}`,
-		},
-	});
+	const [memories, setMemories] = useState<Memory[] | null>(null);
 
 	useEffect(() => {
-		async function fetchData() {
+		(async function fetch() {
 			const result = await get('/api/memories');
-			if (!response.ok) {
-				return toast.error('Something went wrong');
+			if (result.name === 'AxiosError') {
+				return toast.error(result.response.data.message);
 			}
-			setMemories(result);
-		}
-		fetchData();
+			toast.success('Loaded successfully');
+			setMemories(result.data);
+		})();
 	}, []);
 
 	return (
@@ -50,7 +46,7 @@ const Memories = () => {
 					</div>
 				</div>
 				<Row className=''>
-					{loading ? (
+					{loading && !memories ? (
 						<>
 							{ArrayOfSkeletonLoaders.map((loader, index) => (
 								<Col key={index} md={6} xl={3} className='mb-5'>
@@ -58,7 +54,7 @@ const Memories = () => {
 								</Col>
 							))}
 						</>
-					) : (
+					) : memories && memories.length > 0 ? (
 						<>
 							{memories.map((memory) => (
 								<Col
@@ -96,8 +92,7 @@ const Memories = () => {
 								</Col>
 							))}
 						</>
-					)}
-					{memories.length === 0 && !loading && (
+					) : (
 						<div className='text-center'>
 							<h3>No Memories, Create some!</h3>
 						</div>

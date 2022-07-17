@@ -3,8 +3,8 @@ import { Button, Col, Container, Form, Row } from 'react-bootstrap';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import ReactQuill from 'react-quill';
-import { useNavigate, useParams } from 'react-router-dom';
-import useFetch from 'use-http';
+import { useHistory, useParams } from 'react-router-dom';
+import useHttpsService from '../services/httpsService';
 
 interface Memory {
 	id?: string;
@@ -27,13 +27,15 @@ const modules = {
 };
 
 const UpdateMemory = () => {
-	const { id } = useParams();
-	const navigate = useNavigate();
-	const { put, response, get } = useFetch(import.meta.env.VITE_API_URL, {
-		headers: {
-			Authorization: `Bearer ${localStorage.getItem('token')}`,
-		},
-	});
+	const { id }: any = useParams();
+	const history = useHistory();
+
+	const { put, get, loading } = useHttpsService();
+	// const { put, response, get } = useFetch(import.meta.env.VITE_API_URL, {
+	// 	headers: {
+	// 		Authorization: `Bearer ${localStorage.getItem('token')}`,
+	// 	},
+	// });
 	const {
 		register,
 		handleSubmit,
@@ -50,13 +52,13 @@ const UpdateMemory = () => {
 	useEffect(() => {
 		async function fetchData() {
 			const result = await get(`/api/memories/${id}`);
-			if (!response.ok) {
-				toast.error(result.message);
+			if (result.name === 'AxiosError') {
+				return toast.error(result.response.data.message);
 			}
-			setValue('title', result.title);
-			setValue('date', result.date);
-			setValue('description', result.description);
-			setValue('featureImage', result.featureImage);
+			setValue('title', result.data.title);
+			setValue('date', result.data.date);
+			setValue('description', result.data.description);
+			setValue('featureImage', result.data.featureImage);
 		}
 		fetchData();
 	}, []);
@@ -70,12 +72,19 @@ const UpdateMemory = () => {
 	const onSubmit = (data: Memory) => {
 		async function updateData() {
 			const result = await put(`/api/memories/${id}`, data);
-			if (!response.ok) {
-				return toast.error(result.message);
+			console.log(result);
+			if (result.name === 'AxiosError') {
+				if (
+					result.response.data.message ===
+					`"date" must be less than or equal to "now"`
+				) {
+					return toast.error('Date must be in the past');
+				}
+				return toast.error(result.response.data.message);
 			}
 			reset();
 			toast.success('Successfully Updated!');
-			navigate('/memories');
+			history.push('/memories');
 		}
 		updateData();
 	};

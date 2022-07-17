@@ -4,9 +4,9 @@ import { useEffect, useState } from 'react';
 import { Col, Container, Row } from 'react-bootstrap';
 import toast from 'react-hot-toast';
 import { LazyLoadImage } from 'react-lazy-load-image-component';
-import { Link, useNavigate, useParams } from 'react-router-dom';
-import useFetch from 'use-http';
+import { Link, useHistory, useParams } from 'react-router-dom';
 import SpinnerLoader from '../components/common/SpinnerLoader';
+import useHttpsService from '../services/httpsService';
 
 interface Memory {
 	id: string;
@@ -17,35 +17,33 @@ interface Memory {
 }
 
 const SingleMemory = () => {
-	const { id } = useParams();
-	const navigate = useNavigate();
+	const { id }: any = useParams();
+	const history = useHistory();
 
-	const { get, response, del } = useFetch(import.meta.env.VITE_API_URL, {
-		headers: {
-			Authorization: `Bearer ${localStorage.getItem('token')}`,
-		},
-	});
+	const { get, loading, del } = useHttpsService();
 
 	const [memory, setMemory] = useState<Memory>();
 
 	useEffect(() => {
-		async function fetchData() {
+		(async function fetch() {
 			const result = await get(`/api/memories/${id}`);
-			if (!response.ok) {
-				return toast.error('Something went wrong');
+			if (result.name === 'AxiosError') {
+				return toast.error(result.response.data.message);
 			}
-			setMemory(result);
-		}
-		fetchData();
+			toast.success('Loaded successfully');
+
+			console.log(result.data);
+			setMemory(result.data);
+		})();
 	}, []);
 
 	const handleDelete = async () => {
-		await del(`/api/memories/${id}`);
-		if (!response.ok) {
-			return toast.error('Something went wrong');
+		const result = await del(`/api/memories/${id}`);
+		if (result.name === 'AxiosError') {
+			return toast.error(result.response.data.message);
 		}
 		toast.success('Deleted Successfully');
-		navigate('/memories');
+		history.push('/memories');
 	};
 
 	if (!memory) return <SpinnerLoader />;

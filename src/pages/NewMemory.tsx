@@ -1,10 +1,10 @@
-import axios from 'axios';
 import { useEffect } from 'react';
 import { Button, Col, Container, Form, Row } from 'react-bootstrap';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import ReactQuill from 'react-quill';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
+import useHttpsService from '../services/httpsService';
 
 interface Memory {
 	id?: string;
@@ -27,8 +27,9 @@ const modules = {
 };
 
 const NewMemory = () => {
-	const navigate = useNavigate();
-	const location = useLocation();
+	const history = useHistory();
+
+	const { post, loading } = useHttpsService();
 
 	const {
 		register,
@@ -56,21 +57,13 @@ const NewMemory = () => {
 		formData.append('description', data.description);
 		formData.append('featureImage', data.featureImage[0]);
 
-		axios
-			.post('/api/memories', formData, {
-				headers: {
-					'Content-Type': 'multipart/form-data',
-					Authorization: `Bearer ${localStorage.getItem('token')}`,
-				},
-			})
-			.then((res) => {
-				reset();
-				toast.success('Successfully Saved!');
-				navigate('/memories');
-			})
-			.catch((err) => {
-				toast.error(err.response.data);
-			});
+		const result = await post('/api/memories', formData);
+		if (result.name === 'AxiosError') {
+			return toast.error(result.response.data.message);
+		}
+		reset();
+		toast.success('Successfully Saved!');
+		history.push('/memories');
 	};
 	return (
 		<div>
@@ -133,7 +126,7 @@ const NewMemory = () => {
 								/>
 							</Form.Group>
 							<Button variant='primary' type='submit'>
-								save
+								{loading ? 'Saving...' : 'Save'}
 							</Button>
 						</Form>
 					</Col>

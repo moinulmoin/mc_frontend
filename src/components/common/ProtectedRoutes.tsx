@@ -1,8 +1,11 @@
-import { Navigate } from 'react-router-dom';
+import { Redirect } from 'react-router-dom';
+import { useAuthContext } from '../../context/authContext';
 
-const ProtectedRoute = ({ user, children }: any) => {
-	if (!user) {
-		return <Navigate to='/' replace />;
+const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
+	const { isAuthenticated } = useAuthContext();
+
+	if (!isAuthenticated) {
+		return <Redirect to='/' />;
 	}
 
 	return children;

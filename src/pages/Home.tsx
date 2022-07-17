@@ -1,6 +1,8 @@
 import { Container } from 'react-bootstrap';
+import { useAuthContext } from '../context/authContext';
 
-const Home = ({ user }: any) => {
+const Home = () => {
+	const { isAuthenticated, authInfo } = useAuthContext();
 	return (
 		<div>
 			<Container>
@@ -9,11 +11,11 @@ const Home = ({ user }: any) => {
 					<h1>
 						Welcome{' '}
 						<span className='text-primary'>
-							{user ? user.name : ''}
+							{isAuthenticated ? authInfo.user.name : ''}
 						</span>
 					</h1>
 					<h2>
-						{user
+						{isAuthenticated
 							? 'Thanks for using our app'
 							: 'You need to login or register to use this application'}
 					</h2>

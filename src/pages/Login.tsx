@@ -1,19 +1,23 @@
 import { Button, Container, Form } from 'react-bootstrap';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
-import { Navigate } from 'react-router-dom';
-import useFetch from 'use-http';
+import { Redirect } from 'react-router-dom';
+import { useAuthContext } from '../context/authContext';
+import useHttpsService from '../services/httpsService';
 
 interface LoginInputs {
 	usernameOrEmail: string;
 	password: string;
 }
 
-const Login = ({ user }: any) => {
-	if (user) {
-		return <Navigate to='/' replace />;
+const Login = () => {
+	const { isAuthenticated } = useAuthContext();
+	if (isAuthenticated) {
+		return <Redirect to='/' />;
 	}
-	const { post, response, loading } = useFetch(import.meta.env.VITE_API_URL);
+
+	const { post, loading } = useHttpsService();
+	const { setUserAuth } = useAuthContext();
 
 	const {
 		register,
@@ -22,19 +26,18 @@ const Login = ({ user }: any) => {
 		formState: { errors },
 	} = useForm<LoginInputs>();
 
-	const onSubmit = (data: LoginInputs) => {
-		async function postData() {
-			const result = await post('/api/auth', data);
-			if (response.ok) {
-				reset();
-				localStorage.setItem('token', result.token);
-				toast.success('Login successful');
-				window.location.href = '/';
-			} else {
-				toast.error(result.message);
-			}
+	const onSubmit = async (data: LoginInputs) => {
+		const result = await post('/api/auth', data);
+		console.log(result, typeof result);
+
+		if (result.name === 'AxiosError') {
+			return toast.error(result.response.data.message);
 		}
-		postData();
+
+		reset();
+		setUserAuth(result.data.token);
+		toast.success('Login successful');
+		window.location.href = '/';
 	};
 	return (
 		<div className='page-height'>

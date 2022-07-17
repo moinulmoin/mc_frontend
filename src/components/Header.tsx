@@ -1,20 +1,9 @@
-import jwtDecode from 'jwt-decode';
-import { useEffect, useState } from 'react';
 import { Button, Container, Nav, Navbar } from 'react-bootstrap';
 import { Link, NavLink } from 'react-router-dom';
+import { useAuthContext } from '../context/authContext';
 
 const Header = () => {
-	const [user, setUser] = useState<any>();
-
-	useEffect(() => {
-		const token = localStorage.getItem('token');
-		if (token) {
-			const user = jwtDecode(token);
-			setUser(user);
-		} else {
-			setUser(null);
-		}
-	}, []);
+	const { isAuthenticated } = useAuthContext();
 
 	const handleLogout = () => {
 		window.location.href = '/';
@@ -39,7 +28,7 @@ const Header = () => {
 							<Nav.Link as={NavLink} to='/about'>
 								About
 							</Nav.Link>
-							{user && (
+							{isAuthenticated && (
 								<Nav.Link as={NavLink} to='/memories'>
 									Memories
 								</Nav.Link>
@@ -47,10 +36,10 @@ const Header = () => {
 						</Nav>
 
 						<div className='ml-lg-auto text-center mt-3 mt-lg-0'>
-							{user ? (
-								<Link to='/logout' onClick={handleLogout}>
-									<Button variant='danger'>Logout</Button>
-								</Link>
+							{isAuthenticated ? (
+								<Button onClick={handleLogout} variant='danger'>
+									Logout
+								</Button>
 							) : (
 								<>
 									<Link to='/login'>
